@@ -342,6 +342,9 @@ main {
   min-height: 56px;
 }
 .domino-tile.is-selected { border-color: var(--accent-dark); box-shadow: 0 0 0 3px rgba(124, 79, 224, 0.25); }
+.domino-tile-icon { width: 24px; height: 30px; flex: none; }
+.domino-tile-icon svg { width: 100%; height: 100%; }
+.domino-tile-count { font-size: 0.72rem; color: #8a7db0; }
 .domino-divider { width: 2px; align-self: stretch; background: var(--line); }
 .domino-slot {
   border-style: dashed;

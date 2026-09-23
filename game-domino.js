@@ -33,10 +33,19 @@ function buildDominoChain(difficulty) {
     const rightCombo = pickOne(combosByUnits.get(nextV));
     return {
       id: uid('d'),
-      left: { value: v, label: comboLabel(leftCombo) },
-      right: { value: nextV, label: comboLabel(rightCombo) },
+      left: { value: v, factId: leftCombo.factId, count: leftCombo.count, label: comboLabel(leftCombo) },
+      right: { value: nextV, factId: rightCombo.factId, count: rightCombo.count, label: comboLabel(rightCombo) },
     };
   });
+}
+
+// Notensymbol statt Text auf der Dominostein-Hälfte (kindgerechter - Kinder
+// erkennen das Symbol schneller als den Namen). `label` bleibt als
+// Alt-Text/Titel erhalten, damit die Bedeutung bei Bedarf nachlesbar ist.
+function dominoHalfHtml(half) {
+  const fact = factById(half.factId);
+  const countBadge = half.count > 1 ? `<span class="domino-tile-count">×${half.count}</span>` : '';
+  return `<span class="domino-tile-icon" title="${half.label}">${fact.icon}</span>${countBadge}`;
 }
 
 function startDomino() {
@@ -69,7 +78,7 @@ function renderDomino() {
       if (dominoState.wrongLinkIndexes.has(i - 1) || dominoState.wrongLinkIndexes.has(i)) {
         slot.classList.add('is-wrong');
       }
-      slot.innerHTML = `<span>${tile.left.label}</span><span class="domino-divider"></span><span>${tile.right.label}</span>`;
+      slot.innerHTML = `${dominoHalfHtml(tile.left)}<span class="domino-divider"></span>${dominoHalfHtml(tile.right)}`;
       slot.addEventListener('click', () => onDominoSlotClick(i));
     } else {
       slot.textContent = '+';
@@ -85,7 +94,7 @@ function renderDomino() {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = `domino-tile${dominoState.selectedTileId === tileId ? ' is-selected' : ''}`;
-    btn.innerHTML = `<span>${tile.left.label}</span><span class="domino-divider"></span><span>${tile.right.label}</span>`;
+    btn.innerHTML = `${dominoHalfHtml(tile.left)}<span class="domino-divider"></span>${dominoHalfHtml(tile.right)}`;
     btn.addEventListener('click', () => onDominoTilePick(tileId));
     poolEl.appendChild(btn);
   });
