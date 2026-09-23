@@ -2,7 +2,7 @@
 
 Breites Wissensquiz zu Notenwerten für die digitale Tafel/Tablets: sechs
 unterschiedliche Spielformate (Memory, Verbinden, Lückentext, Domino, Quiz,
-Drag & Drop) fragen dasselbe Themenfeld auf jeweils andere Art ab.
+Noten-Werkstatt) fragen dasselbe Themenfeld auf jeweils andere Art ab.
 
 Dritte App im Musik-App-Ökosystem, neben
 [Rhythmus-Generator](../Rhythmus-Generator-App) (freies Bau-Werkzeug für
@@ -33,20 +33,26 @@ Kein einzelner Spiel-Loop, sondern ein **Stationen-Hub**:
 ## Die sechs Formate
 
 1. **🧠 Memory** - Notensymbol-Karte mit passender Info-Karte (Name +
-   Dauer) paaren.
+   Dauer) paaren. Raster ist immer möglichst quadratisch (Spaltenzahl =
+   `ceil(sqrt(Kartenzahl))`), läuft auf breiten Bildschirmen also nicht in
+   eine einzige lange Reihe.
 2. **🔗 Verbinden** - Notenwert antippen, dann die passende Dauer (Text +
    Balkenlänge) antippen.
 3. **📝 Lückentext** - Sätze zu Regeln/Notenaufbau ergänzen, per Antippen
    vorgegebener Wortkarten (kein Freitext - kindgerechter, kein Frust durch
    Tippfehler).
-4. **🁰 Domino** - Steine antippen und in eine Kette legen, bei der
+4. **🁰 Domino** - Steine per echtem Ziehen in eine Kette legen, bei der
    berührende Hälften gleich lange Notenwerte zeigen (z. B. "1 Halbe Note"
-   passt an "2 Viertelnoten").
+   passt an "2 Viertelnoten"). Ursprünglich Antippen-basiert, nach
+   Nutzerfeedback ("fühlt sich nicht organisch an") auf Ziehen umgestellt.
 5. **❓ Quiz** - klassisches Multiple-Choice zu Fakten und Regeln.
-6. **✋ Drag & Drop** - echtes Ziehen (nicht nur Antippen): entweder
+6. **✋ Noten-Werkstatt** - echtes Ziehen (nicht nur Antippen): entweder
    Notenwerte nach Dauer sortieren (längste zuerst) oder eine Note aus
-   Notenkopf/Notenhals/Fähnchen zusammenbauen. Pro Aufgabe zufällig
-   gewählt (Bauen nur, wenn Schwierigkeit "Schwer" aktiv ist).
+   Notenkopf/Notenhals/Fähnchen zusammenbauen (Reihenfolge der Felder wie an
+   der echten Note: Fähnchen oben, Notenhals, Notenkopf unten) - eine
+   Live-Vorschau baut die echte Note dabei sichtbar mit auf, auch wenn ein
+   Teil falsch gewählt wurde. Pro Aufgabe zufällig gewählt (Bauen nur, wenn
+   Schwierigkeit "Schwer" aktiv ist).
 
 **Randomisierung (verbindlich für alle sechs Formate):** Reihenfolge und
 Auswahl von Fragen/Karten/Paaren/Steinen wird bei **jedem** Rundenstart neu
@@ -65,7 +71,11 @@ gewählt (nicht global im Hub):
 2. **🟡 Mittel** - dieselben Notenwerte, zusätzlich die passenden Pausen.
 3. **🔴 Schwer** - zusätzlich 4/4, 3/4, 6/8, Dauer-Verhältnisse (z. B.
    "1 Ganze = 4 Viertel") sowie Notenkopf/Notenhals/Fähnchen; schaltet
-   außerdem die "Note bauen"-Aufgabe bei Drag & Drop frei.
+   außerdem die "Note bauen"-Aufgabe bei Noten-Werkstatt frei. Bei
+   Quiz/Lückentext ist "Umrechnen" (Dauer-Verhältnisse zwischen JEDEM
+   sinnvollen Notenwert-/Pausen-Paar, nicht nur ein Beispiel) hier bewusst
+   der inhaltliche Schwerpunkt, der die Stufe klar von "Mittel" abhebt -
+   siehe [game-quiz.js](game-quiz.js) / [game-luecken.js](game-luecken.js).
 
 Nicht jedes Format nutzt jedes Thema (Memory/Verbinden bleiben z. B. bei
 Notenwerten+Pausen, da sich Taktarten/Verhältnisse nicht sinnvoll als
@@ -81,17 +91,17 @@ textbasierte Formate das breiteste Themenspektrum aus.
 | Lückentext | 10 pro Lücke (+5 bei Lösung im 1. Versuch) | +15 |
 | Domino | 20 pro Stein (nur bei komplett richtiger Kette) | +20 |
 | Quiz | 10 pro Frage (+5 bei Lösung im 1. Versuch) | +15 |
-| Drag & Drop | 10 pro sortiertem/gebautem Element | +15 |
+| Noten-Werkstatt | 10 pro sortiertem/gebautem Element | +15 |
 
 ## Bewusste Entscheidungen zu offenen Punkten der Konzeptnotiz
 
 - **Punkte-Gewichtung** (siehe Tabelle oben): Memory/Verbinden/Domino
-  bekommen mehr Punkte pro Aktion als Quiz/Lückentext/Drag & Drop, weil sie
+  bekommen mehr Punkte pro Aktion als Quiz/Lückentext/Noten-Werkstatt, weil sie
   strukturell aufwändiger sind (ein Paar/Stein verknüpft zwei Fakten statt
   eine Frage direkt zu beantworten). Domino am höchsten bewertet, da es die
   einzige Aufgabe ist, die über die GANZE Kette hinweg konsistent sein
   muss. Erstversuch-Bonus (+5) nur bei Quiz/Lückentext, weil dort "1.
-  Versuch" eindeutig definierbar ist (bei Memory/Domino/Drag & Drop wäre
+  Versuch" eindeutig definierbar ist (bei Memory/Domino/Noten-Werkstatt wäre
   das uneindeutig/unfair, da man dort ohnehin mit Zwischenzuständen
   arbeitet).
 - **Fragen-/Aufgabenpool:** Startpool deckt alle drei Schwierigkeits-Themen

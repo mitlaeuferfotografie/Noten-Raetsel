@@ -63,15 +63,34 @@ function buildQuizPool(difficulty) {
     });
   }
 
+  // Thema "ratios" ("Umrechnen"): das Kernstück von "Schwer" - ALLE
+  // sinnvollen Paare statt nur zwei feste Beispiele, plus eine Frage, die
+  // Taktart- UND Notenwert-Wissen gleichzeitig verlangt (typisch für
+  // "Schwer", macht die Stufe spürbar anspruchsvoller als Mittel).
   if (difficultyHasTopic(difficulty, 'ratios')) {
-    [4, 8].forEach((units) => {
-      const bigger = notes.find((f) => f.units === units);
-      const smaller = notes.find((f) => f.units === 2);
-      const correct = String(units / 2);
+    const ratioGroups = difficultyHasTopic(difficulty, 'rests') ? [notes, REST_FACTS] : [notes];
+    ratioGroups.forEach((group) => {
+      const pluralize = group === notes ? pluralNoteName : pluralRestName;
+      group.forEach((bigger) => {
+        group
+          .filter((smaller) => smaller.units < bigger.units && bigger.units % smaller.units === 0)
+          .forEach((smaller) => {
+            const correct = String(bigger.units / smaller.units);
+            pool.push({
+              text: `Wie viele ${pluralize(smaller.name)} ergeben zusammen eine ${bigger.name}?`,
+              correct,
+              choices: buildChoices(correct, ['2', '3', '4', '8'], 4),
+            });
+          });
+      });
+    });
+
+    TIME_SIGNATURE_FACTS.forEach((ts) => {
+      const correct = String(ts.units);
       pool.push({
-        text: `Wie viele ${pluralNoteName(smaller.name)} ergeben zusammen eine ${bigger.name}?`,
+        text: `Wie viele Achtelnoten passen in einen ${ts.id}-Takt?`,
         correct,
-        choices: buildChoices(correct, ['2', '3', '4', '8'], 4),
+        choices: buildChoices(correct, ['2', '3', '4', '6', '8'], 5),
       });
     });
   }

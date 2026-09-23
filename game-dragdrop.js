@@ -30,23 +30,37 @@ function buildSortTask(difficulty) {
   };
 }
 
+// `value` hält fest, was die Karte über das Bauteil behauptet (gefüllt/
+// vorhanden = true) - unabhängig davon, ob die Karte für die Zielnote
+// richtig ist. Die Live-Vorschau (siehe buildNotePreviewSvg) zeichnet
+// genau das, was gerade in den Feldern liegt, auch wenn es falsch ist.
 function buildBuildTask() {
   const target = pickOne(NOTE_FACTS);
-  const kopfCorrect = target.kopf.startsWith('ausgefüllt') ? 'ausgefüllter Notenkopf' : 'offener Notenkopf';
-  const kopfWrong = target.kopf.startsWith('ausgefüllt') ? 'offener Notenkopf' : 'ausgefüllter Notenkopf';
-  const halsCorrect = target.hals ? 'hat einen Notenhals' : 'hat keinen Notenhals';
-  const halsWrong = target.hals ? 'hat keinen Notenhals' : 'hat einen Notenhals';
-  const fahneCorrect = target.fahne ? 'hat ein Fähnchen' : 'hat kein Fähnchen';
-  const fahneWrong = target.fahne ? 'hat kein Fähnchen' : 'hat ein Fähnchen';
+  const isFilled = target.kopf.startsWith('ausgefüllt');
   const tiles = shuffle([
-    { id: uid('t'), type: 'kopf', label: kopfCorrect, correct: true },
-    { id: uid('t'), type: 'kopf', label: kopfWrong, correct: false },
-    { id: uid('t'), type: 'hals', label: halsCorrect, correct: true },
-    { id: uid('t'), type: 'hals', label: halsWrong, correct: false },
-    { id: uid('t'), type: 'fahne', label: fahneCorrect, correct: true },
-    { id: uid('t'), type: 'fahne', label: fahneWrong, correct: false },
+    { id: uid('t'), type: 'kopf', label: isFilled ? 'ausgefüllter Notenkopf' : 'unausgefüllter Notenkopf', value: isFilled, correct: true },
+    { id: uid('t'), type: 'kopf', label: isFilled ? 'unausgefüllter Notenkopf' : 'ausgefüllter Notenkopf', value: !isFilled, correct: false },
+    { id: uid('t'), type: 'hals', label: target.hals ? 'hat einen Notenhals' : 'hat keinen Notenhals', value: target.hals, correct: true },
+    { id: uid('t'), type: 'hals', label: target.hals ? 'hat keinen Notenhals' : 'hat einen Notenhals', value: !target.hals, correct: false },
+    { id: uid('t'), type: 'fahne', label: target.fahne ? 'hat ein Fähnchen' : 'hat kein Fähnchen', value: target.fahne, correct: true },
+    { id: uid('t'), type: 'fahne', label: target.fahne ? 'hat kein Fähnchen' : 'hat ein Fähnchen', value: !target.fahne, correct: false },
   ]);
   return { kind: 'build', target, tiles };
+}
+
+// Zeichnet exakt das, was aktuell in den drei Feldern liegt (auch wenn
+// falsch) - dieselbe Geometrie wie die echten Noten-Icons in content.js
+// (Ellipse/Linie/Fähnchen-Pfad), damit die Vorschau wie eine "richtige"
+// Note aussieht. Noch leere Felder werden als blasser Platzhalter gezeigt.
+function buildNotePreviewSvg(kopfTile, halsTile, fahneTile) {
+  const kopfFill = kopfTile ? (kopfTile.value ? '#1a1a1a' : 'none') : 'none';
+  const kopfStroke = kopfTile ? '#1a1a1a' : 'var(--border-strong)';
+  const kopfDash = kopfTile ? '' : ' stroke-dasharray="4 3"';
+  const hals = halsTile && halsTile.value
+    ? '<line x1="26" y1="43" x2="26" y2="3" stroke="#1a1a1a" stroke-width="3.5"/>' : '';
+  const fahne = fahneTile && fahneTile.value
+    ? '<path d="M26 3 C25.3 9.1 31.8 11.2 34.9 14 C37.9 16.7 39 19.7 38.9 22.5 C38.9 23.3 38.6 26.7 35.8 30 C39.6 21.6 36.1 18.3 32.6 15.6 C28.5 12.4 25.4 9.4 26 3 Z" fill="#1a1a1a"/>' : '';
+  return `<svg viewBox="0 0 40 56"><ellipse cx="16" cy="46" rx="11" ry="7.5" transform="rotate(-15 16 46)" fill="${kopfFill}" stroke="${kopfStroke}" stroke-width="3.5"${kopfDash}/>${hals}${fahne}</svg>`;
 }
 
 let dragdropState = null;
@@ -70,7 +84,9 @@ function renderDragDropTask() {
 
   const zones = task.kind === 'sort'
     ? task.tiles.map((_, i) => ({ id: String(i), label: i === 0 ? '1. (am längsten)' : i === task.tiles.length - 1 ? `${i + 1}. (am kürzesten)` : `${i + 1}.` }))
-    : [{ id: 'kopf', label: 'Notenkopf' }, { id: 'hals', label: 'Notenhals?' }, { id: 'fahne', label: 'Fähnchen?' }];
+    // Reihenfolge wie an der echten Note von oben nach unten: Fähnchen,
+    // dann Notenhals, dann Notenkopf ganz unten.
+    : [{ id: 'fahne', label: 'Fähnchen?' }, { id: 'hals', label: 'Notenhals?' }, { id: 'kopf', label: 'Notenkopf' }];
 
   task.zones = zones.map((z) => ({ ...z, filledTileId: null }));
   task.tilesById = new Map(task.tiles.map((t) => [t.id, t]));
@@ -123,7 +139,26 @@ function renderDragDropUI(task) {
     }
     zonesEl.appendChild(zoneEl);
   });
-  wrap.appendChild(zonesEl);
+
+  if (task.kind === 'build') {
+    // Baut die Note live aus den aktuell befüllten Feldern zusammen (auch
+    // falsche Kombinationen) - so sieht man sofort, wie sich jede
+    // Bauteil-Wahl auf die echte Note auswirkt.
+    const tileForZone = (zoneId) => {
+      const zone = task.zones.find((z) => z.id === zoneId);
+      return zone.filledTileId ? task.tilesById.get(zone.filledTileId) : null;
+    };
+    const row = document.createElement('div');
+    row.className = 'dragdrop-build-row';
+    row.appendChild(zonesEl);
+    const previewEl = document.createElement('div');
+    previewEl.className = 'dd-note-preview';
+    previewEl.innerHTML = buildNotePreviewSvg(tileForZone('kopf'), tileForZone('hals'), tileForZone('fahne'));
+    row.appendChild(previewEl);
+    wrap.appendChild(row);
+  } else {
+    wrap.appendChild(zonesEl);
+  }
 
   const poolEl = document.createElement('div');
   poolEl.className = 'dd-pool';

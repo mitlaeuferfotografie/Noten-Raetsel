@@ -65,7 +65,7 @@ const FORMATS = [
   { id: 'luecken', icon: '📝', title: 'Lückentext', hint: 'Tippe das passende Wort für die Lücke an.', start: startLuecken, actionBtn: false },
   { id: 'domino', icon: '🁰', title: 'Domino', hint: 'Lege die Steine in eine Reihe - berührende Hälften müssen gleich lang klingen.', start: startDomino, actionBtn: true },
   { id: 'quiz', icon: '❓', title: 'Quiz', hint: 'Beantworte die Fragen zu Notenwerten und Regeln.', start: startQuiz, actionBtn: false },
-  { id: 'dragdrop', icon: '✋', title: 'Drag & Drop', hint: 'Sortiere Notenwerte oder baue eine Note aus ihren Teilen.', start: startDragDrop, actionBtn: true },
+  { id: 'dragdrop', icon: '✋', title: 'Noten-Werkstatt', hint: 'Sortiere Notenwerte oder baue eine Note aus ihren Teilen.', start: startDragDrop, actionBtn: true },
 ];
 
 function formatById(id) {

@@ -11,7 +11,12 @@ const LUECKEN_POINTS_PER_BLANK = 10;
 const LUECKEN_FIRST_TRY_BONUS = 5;
 const LUECKEN_COMPLETE_BONUS = 15;
 
-const pluralNoteName = (name) => name.replace(/Note$/, 'Noten');
+// "Ganze Note"/"Halbe Note" schreiben sich mit Leerzeichen und großem "Note",
+// "Viertelnote"/"Achtelnote" als ein Wort mit kleinem "note" - /i plus
+// Ersatz-Funktion behält jeweils die richtige Groß-/Kleinschreibung bei
+// (sonst bliebe "Viertelnote" beim Pluralisieren unverändert).
+const pluralNoteName = (name) => name.replace(/note$/i, (m) => `${m}n`);
+const pluralRestName = (name) => name.replace(/pause$/i, (m) => `${m}n`);
 
 function buildChoices(correct, distractorPool, maxChoices) {
   const distractors = sample([...new Set(distractorPool.filter((d) => d !== correct))], maxChoices - 1);
@@ -77,17 +82,26 @@ function buildLueckenPool(difficulty) {
     });
   }
 
-  // Thema "ratios": Dauer-Verhältnisse zwischen Notenwerten.
+  // Thema "ratios" ("Umrechnen"): Dauer-Verhältnisse zwischen Notenwerten -
+  // das Kernstück von "Schwer", deshalb ALLE sinnvollen Paare (nicht nur
+  // eines pro größerem Wert) und, falls freigeschaltet, zusätzlich dieselben
+  // Paare für Pausen - macht Schwer inhaltlich klar anspruchsvoller als
+  // Mittel statt nur ein paar Ja/Nein-Fragen mehr zu haben.
   if (difficultyHasTopic(difficulty, 'ratios')) {
-    const bigOnes = notes.filter((f) => f.units >= 4);
-    bigOnes.forEach((bigger) => {
-      const smaller = pickOne(notes.filter((f) => f.units < bigger.units));
-      if (!smaller) return;
-      const correct = String(bigger.units / smaller.units);
-      pool.push({
-        text: `Eine ${bigger.name} ist genauso lang wie ___ ${pluralNoteName(smaller.name)}.`,
-        correct,
-        choices: buildChoices(correct, ['2', '3', '4', '8'], 4),
+    const ratioGroups = difficultyHasTopic(difficulty, 'rests') ? [notes, REST_FACTS] : [notes];
+    ratioGroups.forEach((group) => {
+      const pluralize = group === notes ? pluralNoteName : pluralRestName;
+      group.forEach((bigger) => {
+        group
+          .filter((smaller) => smaller.units < bigger.units && bigger.units % smaller.units === 0)
+          .forEach((smaller) => {
+            const correct = String(bigger.units / smaller.units);
+            pool.push({
+              text: `Eine ${bigger.name} ist genauso lang wie ___ ${pluralize(smaller.name)}.`,
+              correct,
+              choices: buildChoices(correct, ['2', '3', '4', '8'], 4),
+            });
+          });
       });
     });
   }

@@ -19,7 +19,7 @@ Ursprüngliche Konzeptnotiz lag in
 ## Stand: 2026-09-23
 
 - Erste Version vollständig funktionsfähig, alle sechs Formate lokal
-  durchgetestet (inkl. echtem Drag & Drop, Punktevergabe,
+  durchgetestet (inkl. echtem Noten-Werkstatt, Punktevergabe,
   Schwierigkeits-Filterung, Randomisierung, Rundenabschluss). Noch NICHT
   auf GitHub Pages veröffentlicht (folgt im Anschluss an diese erste
   Version).
@@ -33,6 +33,34 @@ Ursprüngliche Konzeptnotiz lag in
   umbenannt zu `DIFFICULTIES`/`difficultyHasTopic`/`factsForDifficulty`.
   Fortschrittsanzeige jetzt als 3 kleine Punkte pro Format-Kachel statt
   einem einzigen Haken.
+- Style-Test (Branch `style-test-tailwind`, noch nicht gepusht): heller
+  Slate/Amber-Look mit dunkelblauer (Navy) Toolbar/Buttons statt
+  Schwarz - siehe eigener Screenshot im Projektordner.
+- Feedback-Runde nach dem Style-Test (Bugfixes + Inhalt, vor dem Push):
+  - **Verbinden-Bug behoben**: Die rechte Spalte zeigt nur die Dauer (z.B.
+    "1 Schlag") - eine Note und ihre gleich lange Pause sahen dort
+    identisch aus, wurden aber nur bei exakt der ursprünglich zugeordneten
+    Karte als richtig gewertet. Matcht jetzt nach `units`-Gleichheit
+    (`matchedLeftIds`/`matchedRightIds` statt `matchedFactIds`).
+  - **Format 6 umbenannt**: "Drag & Drop" -> "Noten-Werkstatt" (kindgerechter,
+    passt zum ✋-Icon).
+  - **"Note bauen"-Aufgabe erweitert**: Label "offener Notenkopf" ->
+    "unausgefüllter Notenkopf"; Feld-Reihenfolge auf Fähnchen/Notenhals/
+    Notenkopf (wie an der echten Note) gedreht; neue Live-Vorschau
+    (`buildNotePreviewSvg` in `game-dragdrop.js`) baut die echte Note aus
+    den aktuell befüllten Feldern zusammen, auch wenn ein Teil falsch ist.
+  - **Memory-Raster quadratisch**: feste Spaltenzahl
+    `ceil(sqrt(Kartenzahl))` per `--memory-cols` statt `auto-fit`, damit es
+    nicht in eine lange Reihe läuft.
+  - **Domino auf echtes Ziehen umgestellt**: war Antippen-basiert
+    ("fühlt sich nicht organisch an" laut Nutzer), jetzt Pointer-Events wie
+    Noten-Werkstatt (`startDominoDrag`/`onDominoDragMove`/`onDominoDragEnd`).
+  - **Schwer-Stufe bei Quiz/Lückentext deutlich ausgebaut**: "Umrechnen"
+    (Dauer-Verhältnisse) ist jetzt der inhaltliche Schwerpunkt - ALLE
+    sinnvollen Noten-/Pausen-Paare statt nur 1-2 feste Beispiele, plus eine
+    Taktart+Notenwert-Kombifrage bei Quiz. Pool-Größe bei "Schwer" dadurch
+    von 16/21 auf 29/31 Fragen/Sätze gewachsen (Leicht 4, Mittel 8 bleiben
+    unverändert - Schwer hebt sich jetzt klar ab).
 - Funktionsumfang/Schwierigkeitsstufen/Punktesystem: siehe README.md.
 
 ## Repository / Deployment
@@ -70,16 +98,19 @@ Ursprüngliche Konzeptnotiz lag in
   `factsForDifficulty()` selbst, welche Fakten es nutzen darf. Wird PRO
   Format auf einer eigenen Zwischenseite gewählt (nicht global im Hub) -
   siehe README.md, "Spielprinzip".
-- Domino/Drag & Drop nutzen den gemeinsamen `#actionBtn` ("✓ Prüfen") in
+- Domino/Noten-Werkstatt nutzen den gemeinsamen `#actionBtn` ("✓ Prüfen") in
   der Bottom-Bar (mehrteilige Anordnung, erst als Ganzes bewertbar); alle
   anderen Formate werten jede Aktion sofort einzeln, ohne Extra-Klick.
   `renderApp()` setzt `actionBtn.hidden = true` explizit auf Hub/
   Difficulty-Screen, damit der Button nach `backToHub()` nicht fälschlich
   sichtbar bleibt.
-- Drag & Drop implementiert echtes Ziehen per Pointer Events (eigener,
-  lokaler Mechanismus in `game-dragdrop.js`, nicht die native HTML5-DnD-API
-  - touch-tauglich). Domino/Verbinden nutzen bewusst Antippen statt Ziehen
-  (laut Konzeptnotiz gleichwertig, auf kleinen Touch-Zielen robuster).
+- Noten-Werkstatt UND Domino implementieren echtes Ziehen per Pointer Events
+  (eigener, lokaler Mechanismus in `game-dragdrop.js`/`game-domino.js`,
+  nicht die native HTML5-DnD-API - touch-tauglich, gemeinsames `#dragGhost`-
+  Element). Domino war ursprünglich Antippen-basiert (laut Konzeptnotiz
+  gleichwertig), wurde aber nach Nutzerfeedback ("fühlt sich nicht
+  organisch an") auf Ziehen umgestellt. Nur Verbinden bleibt bewusst
+  Antippen-basiert.
 - Fortschritt (`localStorage`, Key `notenRaetselFortschritt`): Punkte,
   welche Schwierigkeit/Format-Kombinationen abgeschlossen sind
   (`completedCombos`, Key-Format `"${formatId}-${difficultyId}"`), zuletzt
