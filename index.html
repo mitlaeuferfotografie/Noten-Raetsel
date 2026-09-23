@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Noten-Rätsel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<!-- ?v=N auf style.css/*.js bei jedem inhaltlichen Deploy erhöhen (siehe
+     Rhythmus-Generator/Rhythmus-Trainer): GitHub Pages cacht 10 Minuten. -->
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+
+<header class="toolbar">
+  <button id="backToHubBtn" class="btn btn-secondary" hidden>◀ Hub</button>
+  <h1>🎼 Noten-Rätsel</h1>
+  <div class="toolbar-progress">
+    <span id="pointsLabel">⭐ 0 Punkte</span>
+  </div>
+</header>
+
+<main>
+  <!-- ---------- Hub: Level-Wahl + sechs Format-Kacheln ---------- -->
+  <section id="hubScreen">
+    <p class="hub-hint">Level wählen (bestimmt den Inhalt, nicht das Format):</p>
+    <div id="levelPills" class="level-pills"><!-- populated by hub.js --></div>
+
+    <p class="hub-hint">Spielform wählen:</p>
+    <div id="formatGrid" class="format-grid"><!-- populated by hub.js --></div>
+  </section>
+
+  <!-- ---------- Format-Bildschirm (gemeinsamer Rahmen für alle sechs) ---------- -->
+  <section id="formatScreen" hidden>
+    <h2 id="formatTitle" class="format-title"></h2>
+    <p id="formatHint" class="format-hint"></p>
+    <div id="formatContainer" class="format-container"><!-- populated by game-*.js --></div>
+    <div id="feedback" class="feedback" hidden></div>
+  </section>
+</main>
+
+<div class="bottom-bar">
+  <button id="settingsToggle" class="btn btn-secondary" aria-expanded="false" aria-controls="settingsPanel">
+    ⚙ Einstellungen
+  </button>
+  <button id="actionBtn" class="action-btn" hidden>✓ Prüfen</button>
+</div>
+
+<div id="settingsPanel" class="settings-panel" hidden>
+  <label class="volume-label">
+    <span>Lautstärke: <span id="soundVolumeValue">60</span> %</span>
+    <input type="range" id="soundVolumeSlider" min="0" max="100" value="60">
+  </label>
+  <button id="resetProgressBtn" class="btn btn-secondary reset-btn" type="button">
+    Fortschritt zurücksetzen
+  </button>
+</div>
+
+<div id="pointsPopup" class="points-popup" hidden>
+  <span class="points-popup-stars">✨</span>
+  <span class="points-popup-value"></span>
+  <span class="points-popup-stars">✨</span>
+</div>
+
+<div id="dragGhost" class="drag-ghost" hidden></div>
+
+<script src="content.js?v=1"></script>
+<script src="audio.js?v=1"></script>
+<script src="game-memory.js?v=1"></script>
+<script src="game-verbinden.js?v=1"></script>
+<script src="game-luecken.js?v=1"></script>
+<script src="game-domino.js?v=1"></script>
+<script src="game-quiz.js?v=1"></script>
+<script src="game-dragdrop.js?v=1"></script>
+<script src="hub.js?v=1"></script>
+</body>
+</html>
