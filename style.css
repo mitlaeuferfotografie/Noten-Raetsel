@@ -106,32 +106,6 @@ main {
   margin: 22px 0 10px;
 }
 
-.level-pills {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.level-pill {
-  padding: 9px 16px;
-  border: 2px solid var(--line);
-  border-radius: 999px;
-  background: var(--paper);
-  color: var(--ink);
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 0.12s ease, background 0.15s, border-color 0.15s;
-}
-.level-pill:hover { border-color: var(--accent); transform: translateY(-1px); }
-.level-pill.is-selected {
-  border-color: var(--accent-dark);
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-  color: white;
-}
-
 /* ---------- Hub: Format-Kacheln ---------- */
 
 .format-grid {
@@ -171,14 +145,48 @@ main {
 
 .format-card-icon { font-size: 2.2rem; line-height: 1; }
 .format-card-title { font-size: 1.05rem; font-weight: 700; }
-.format-card-check {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  color: var(--ok);
-  font-weight: 700;
-  font-size: 1.1rem;
+
+/* Drei kleine Punkte (Leicht/Mittel/Schwer) statt eines einzelnen Hakens -
+   zeigt direkt auf der Kachel, welche Schwierigkeiten schon geschafft
+   wurden, ohne dass man erst hineintippen muss. */
+.format-card-dots { display: flex; gap: 5px; }
+.format-card-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--line);
 }
+.format-card-dot.is-done { background: var(--ok); }
+
+/* ---------- Zwischenseite: Schwierigkeit wählen ---------- */
+
+.difficulty-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
+  margin: 20px auto 0;
+}
+
+.difficulty-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: var(--paper);
+  border: 3px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 6px 16px rgba(95, 54, 184, 0.1);
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.difficulty-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+.difficulty-card:active { transform: translateY(0) scale(0.99); }
+.difficulty-card.is-suggested { border-color: var(--accent); }
+
+.difficulty-card-title { font-size: 1.2rem; font-weight: 700; }
+.difficulty-card-check { color: var(--ok); font-weight: 700; font-size: 0.9rem; }
 
 /* ---------- Format-Bildschirm (gemeinsamer Rahmen) ---------- */
 

@@ -10,7 +10,7 @@ const QUIZ_POINTS_PER_QUESTION = 10;
 const QUIZ_FIRST_TRY_BONUS = 5;
 const QUIZ_COMPLETE_BONUS = 15;
 
-function buildQuizPool(level) {
+function buildQuizPool(difficulty) {
   const pool = [];
   const notes = NOTE_FACTS;
 
@@ -22,7 +22,7 @@ function buildQuizPool(level) {
     });
   });
 
-  if (levelHasTopic(level, 'rests')) {
+  if (difficultyHasTopic(difficulty, 'rests')) {
     REST_FACTS.forEach((r) => {
       const matchingNote = notes.find((n) => n.units === r.units);
       if (!matchingNote) return;
@@ -34,7 +34,7 @@ function buildQuizPool(level) {
     });
   }
 
-  if (levelHasTopic(level, 'structure')) {
+  if (difficultyHasTopic(difficulty, 'structure')) {
     const noFahne = notes.filter((f) => !f.fahne).map((f) => f.name);
     pool.push({
       text: 'Welche dieser Noten hat KEIN Fähnchen?',
@@ -53,7 +53,7 @@ function buildQuizPool(level) {
     });
   }
 
-  if (levelHasTopic(level, 'timesignatures')) {
+  if (difficultyHasTopic(difficulty, 'timesignatures')) {
     TIME_SIGNATURE_FACTS.forEach((ts) => {
       pool.push({
         text: `Welche Taktart hat ${ts.top} Zählzeiten pro Takt?`,
@@ -63,7 +63,7 @@ function buildQuizPool(level) {
     });
   }
 
-  if (levelHasTopic(level, 'ratios')) {
+  if (difficultyHasTopic(difficulty, 'ratios')) {
     [4, 8].forEach((units) => {
       const bigger = notes.find((f) => f.units === units);
       const smaller = notes.find((f) => f.units === 2);
@@ -82,7 +82,7 @@ function buildQuizPool(level) {
 let quizState = null;
 
 function startQuiz() {
-  const pool = buildQuizPool(currentLevel());
+  const pool = buildQuizPool(currentDifficulty());
   quizState = {
     items: sample(pool, Math.min(QUIZ_ROUND_SIZE, pool.length)),
     index: 0,

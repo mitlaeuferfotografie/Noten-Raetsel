@@ -9,25 +9,26 @@ Dritte App im Musik-App-Ökosystem, neben
 Rhythmen) und [Rhythmus-Trainer](../Rhythmus-Trainer-App) (Hördiktat mit
 Punkten/Levels). Anders als die beiden Rhythmus-Apps geht es hier nicht um
 das Bauen/Hören von Rhythmen selbst, sondern um Faktenwissen: Notenwerte,
-ihre Dauer-Verhältnisse, ihren Aufbau (Notenkopf/-hals/Fähnchen) und (ab
-Level 3) Taktarten.
+ihre Dauer-Verhältnisse, ihren Aufbau (Notenkopf/-hals/Fähnchen) und (bei
+"Schwer") Taktarten.
 
 ## Spielprinzip
 
 Kein einzelner Spiel-Loop, sondern ein **Stationen-Hub**:
 
-- **Level** (oben, 1-4) bestimmt den **Inhalt** - je höher, desto mehr
-  Themen sind freigeschaltet (siehe unten). Level und Format sind bewusst
-  unabhängig wählbar: das Level gilt für alle Formate gleichermaßen, man
-  wechselt es einmal und spielt dann irgendein Format damit.
-- **Spielform** (die sechs Kacheln) bestimmt, WIE der aktuelle Inhalt
-  abgefragt wird.
-- Ein grüner Haken auf einer Kachel zeigt, dass diese Level/Format-
-  Kombination schon einmal komplett gelöst wurde. Beliebig oft wiederholbar
-  für mehr Punkte/Übung - kein Freischalten, keine Bestrafung für falsche
-  Versuche, kein Zeitdruck.
-- Alle Punkte aus allen Formaten/Leveln fließen in einen gemeinsamen
-  Gesamtpunktestand.
+- Im Hub wählt man zuerst eine der sechs **Spielform**-Kacheln.
+- Direkt danach fragt eine kurze Zwischenseite die **Schwierigkeit**
+  (🟢 Leicht / 🟡 Mittel / 🔴 Schwer) ab - sie bestimmt den INHALT (welche
+  Themen abgefragt werden, siehe unten), nicht das Format. Bewusst PRO
+  FORMAT direkt vor dem Start gewählt statt einer globalen Einstellung
+  irgendwo im Hub - zwei getrennte Auswahlreihen (Level oben, Format unten)
+  waren für Kinder verwirrend.
+- Kleine Punkte auf jeder Format-Kachel zeigen, welche der drei
+  Schwierigkeiten für dieses Format schon mindestens einmal komplett
+  gelöst wurden. Beliebig oft wiederholbar für mehr Punkte/Übung - kein
+  Freischalten, keine Bestrafung für falsche Versuche, kein Zeitdruck.
+- Alle Punkte aus allen Formaten/Schwierigkeiten fließen in einen
+  gemeinsamen Gesamtpunktestand.
 
 ## Die sechs Formate
 
@@ -45,7 +46,7 @@ Kein einzelner Spiel-Loop, sondern ein **Stationen-Hub**:
 6. **✋ Drag & Drop** - echtes Ziehen (nicht nur Antippen): entweder
    Notenwerte nach Dauer sortieren (längste zuerst) oder eine Note aus
    Notenkopf/Notenhals/Fähnchen zusammenbauen. Pro Aufgabe zufällig
-   gewählt (Bauen nur, wenn Level 4 aktiv ist).
+   gewählt (Bauen nur, wenn Schwierigkeit "Schwer" aktiv ist).
 
 **Randomisierung (verbindlich für alle sechs Formate):** Reihenfolge und
 Auswahl von Fragen/Karten/Paaren/Steinen wird bei **jedem** Rundenstart neu
@@ -54,16 +55,16 @@ ausgewürfelt (Fisher-Yates-Shuffle, siehe `shuffle()`/`sample()` in
 Tablets im Unterricht mehrfach hintereinander von verschiedenen Kindern
 genutzt werden und Lösungen nicht auswendig gelernt werden sollen.
 
-## Level
+## Schwierigkeitsstufen
 
-Level steuern den Inhalt, nicht das Format oder den Schwierigkeitsgrad der
-Bedienung:
+Die Schwierigkeit steuert den Inhalt, nicht das Format oder den
+Bedienungs-Schwierigkeitsgrad. Sie wird PRO Format direkt vor dem Start
+gewählt (nicht global im Hub):
 
-1. **Notenwerte** - Ganze, Halbe, Viertel, Achtelnote.
-2. **+ Pausen** - dieselben Notenwerte, zusätzlich die passenden Pausen.
-3. **+ Taktarten & Verhältnisse** - zusätzlich 4/4, 3/4, 6/8 und
-   Dauer-Verhältnisse (z. B. "1 Ganze = 4 Viertel").
-4. **+ Notenaufbau** - zusätzlich Notenkopf/Notenhals/Fähnchen; schaltet
+1. **🟢 Leicht** - Notenwerte: Ganze, Halbe, Viertel, Achtelnote.
+2. **🟡 Mittel** - dieselben Notenwerte, zusätzlich die passenden Pausen.
+3. **🔴 Schwer** - zusätzlich 4/4, 3/4, 6/8, Dauer-Verhältnisse (z. B.
+   "1 Ganze = 4 Viertel") sowie Notenkopf/Notenhals/Fähnchen; schaltet
    außerdem die "Note bauen"-Aufgabe bei Drag & Drop frei.
 
 Nicht jedes Format nutzt jedes Thema (Memory/Verbinden bleiben z. B. bei
@@ -93,18 +94,18 @@ textbasierte Formate das breiteste Themenspektrum aus.
   Versuch" eindeutig definierbar ist (bei Memory/Domino/Drag & Drop wäre
   das uneindeutig/unfair, da man dort ohnehin mit Zwischenzuständen
   arbeitet).
-- **Fragen-/Aufgabenpool:** Startpool deckt alle vier Level-Themen ab
-  (`buildQuizPool`/`buildLueckenPool`/`buildDominoChain`/`buildSortTask`/
-  `buildBuildTask` in den jeweiligen `game-*.js`) - bewusst als
-  generierende Funktionen statt einer starren Fragenliste, damit sich der
-  Pool leicht erweitern lässt (neue Frage-Vorlage ergänzen, nicht jede
+- **Fragen-/Aufgabenpool:** Startpool deckt alle drei Schwierigkeits-Themen
+  ab (`buildQuizPool`/`buildLueckenPool`/`buildDominoChain`/
+  `buildSortTask`/`buildBuildTask` in den jeweiligen `game-*.js`) - bewusst
+  als generierende Funktionen statt einer starren Fragenliste, damit sich
+  der Pool leicht erweitern lässt (neue Frage-Vorlage ergänzen, nicht jede
   einzelne Frage von Hand schreiben).
-- **Level/Format als Fortschritt:** Da jedes Format bereits eine
+- **Schwierigkeit/Format als Fortschritt:** Da jedes Format bereits eine
   vollständige Mini-Runde ist (z. B. 8 Quizfragen oder ein 6-Paar-
   Memory-Brett), zählt EIN vollständig gelöster Durchlauf pro
-  Level/Format-Kombination als "geschafft" (grüner Haken) - anders als der
-  Rhythmus-Trainer, der wegen kurzer Einzelrunden 10 Wiederholungen
-  braucht, um Übung zu erzwingen.
+  Schwierigkeit/Format-Kombination als "geschafft" (Punkt auf der
+  Format-Kachel) - anders als der Rhythmus-Trainer, der wegen kurzer
+  Einzelrunden 10 Wiederholungen braucht, um Übung zu erzwingen.
 - **Optik:** wie in der Notiz gewünscht am verspielten Rhythmus-Trainer
   orientiert (gleiche Farbpalette, Schriftart "Baloo 2", Punkte-Overlay,
   runde Formen) statt am schlichten Rhythmus-Generator.

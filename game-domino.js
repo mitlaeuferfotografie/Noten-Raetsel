@@ -19,8 +19,8 @@ let dominoState = null;
 // Zufallswerten, für jeden Übergang ein Stein mit je einer zufälligen
 // (evtl. unterschiedlichen) Kombination pro Seite - die Reihenfolge wird
 // danach für die Präsentation ausgewürfelt (siehe startDomino).
-function buildDominoChain(level) {
-  const facts = factsForLevel(level);
+function buildDominoChain(difficulty) {
+  const facts = factsForDifficulty(difficulty);
   const combosByUnits = allRatioCombos(facts);
   const unitSizes = [...combosByUnits.keys()];
 
@@ -40,7 +40,7 @@ function buildDominoChain(level) {
 }
 
 function startDomino() {
-  const tiles = buildDominoChain(currentLevel());
+  const tiles = buildDominoChain(currentDifficulty());
   dominoState = {
     pool: shuffle(tiles.map((t) => t.id)), // Präsentationsreihenfolge jede Runde neu ausgewürfelt
     slots: new Array(tiles.length).fill(null), // Kette: null oder Stein-ID

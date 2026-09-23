@@ -18,10 +18,10 @@ function buildChoices(correct, distractorPool, maxChoices) {
   return shuffle([correct, ...distractors]);
 }
 
-// Baut den vollständigen Lückentext-Pool für ein Level - jede Vorlage
-// erzeugt mehrere konkrete Sätze (einen pro passender Note/Pause/Taktart),
-// gefiltert auf die im Level freigeschalteten Themen.
-function buildLueckenPool(level) {
+// Baut den vollständigen Lückentext-Pool für eine Schwierigkeitsstufe -
+// jede Vorlage erzeugt mehrere konkrete Sätze (einen pro passender
+// Note/Pause/Taktart), gefiltert auf die freigeschalteten Themen.
+function buildLueckenPool(difficulty) {
   const pool = [];
   const notes = NOTE_FACTS;
   const allSchlaegeTexts = notes.map((f) => formatSchlaege(f.units));
@@ -37,7 +37,7 @@ function buildLueckenPool(level) {
   });
 
   // Thema "rests": eine Pause dauert genauso lange wie welche Note?
-  if (levelHasTopic(level, 'rests')) {
+  if (difficultyHasTopic(difficulty, 'rests')) {
     REST_FACTS.forEach((r) => {
       const matchingNote = notes.find((n) => n.units === r.units);
       if (!matchingNote) return;
@@ -50,7 +50,7 @@ function buildLueckenPool(level) {
   }
 
   // Thema "structure": Notenaufbau (Notenhals/Fähnchen ja oder nein).
-  if (levelHasTopic(level, 'structure')) {
+  if (difficultyHasTopic(difficulty, 'structure')) {
     notes.forEach((f) => {
       pool.push({
         text: `Hat die ${f.name} einen Notenhals?`,
@@ -66,7 +66,7 @@ function buildLueckenPool(level) {
   }
 
   // Thema "timesignatures": bis wohin zählt man im Takt.
-  if (levelHasTopic(level, 'timesignatures')) {
+  if (difficultyHasTopic(difficulty, 'timesignatures')) {
     TIME_SIGNATURE_FACTS.forEach((ts) => {
       const correct = String(ts.top);
       pool.push({
@@ -78,7 +78,7 @@ function buildLueckenPool(level) {
   }
 
   // Thema "ratios": Dauer-Verhältnisse zwischen Notenwerten.
-  if (levelHasTopic(level, 'ratios')) {
+  if (difficultyHasTopic(difficulty, 'ratios')) {
     const bigOnes = notes.filter((f) => f.units >= 4);
     bigOnes.forEach((bigger) => {
       const smaller = pickOne(notes.filter((f) => f.units < bigger.units));
@@ -98,7 +98,7 @@ function buildLueckenPool(level) {
 let lueckenState = null;
 
 function startLuecken() {
-  const pool = buildLueckenPool(currentLevel());
+  const pool = buildLueckenPool(currentDifficulty());
   lueckenState = {
     items: sample(pool, Math.min(LUECKEN_ROUND_SIZE, pool.length)), // Reihenfolge + Auswahl jede Runde neu
     index: 0,

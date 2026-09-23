@@ -12,8 +12,8 @@ const MEMORY_COMPLETE_BONUS = 20;
 let memoryState = null;
 
 function startMemory() {
-  const facts = factsForLevel(currentLevel());
-  const pairCount = Math.min(facts.length, currentLevel().id >= 2 ? 8 : 6);
+  const facts = factsForDifficulty(currentDifficulty());
+  const pairCount = Math.min(facts.length, currentDifficulty().order >= 2 ? 8 : 6);
   const chosen = sample(facts, pairCount);
 
   const cards = [];

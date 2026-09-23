@@ -71,27 +71,31 @@ const TIME_SIGNATURE_FACTS = [
 ];
 
 /* ============================================================
-   Level-Definitionen: steuern hier NICHT das Spielformat (das wählt man
-   getrennt im Hub), sondern welche Themen inhaltlich abgefragt werden -
-   genau wie in der Konzeptnotiz Punkt 4 vorgegeben.
+   Schwierigkeitsstufen: steuern NICHT das Spielformat, sondern welche
+   Themen inhaltlich abgefragt werden. Wird jetzt PRO FORMAT direkt vor dem
+   Start gewählt (nicht mehr global im Hub) - eine separate Level-Auswahl
+   oben und Format-Auswahl unten war für Kinder verwirrend. Drei statt der
+   ursprünglich vier Stufen, an derselben inhaltlichen Reihenfolge
+   orientiert: die letzten beiden alten Stufen (Taktarten/Verhältnisse UND
+   Notenaufbau) sind hier zu einer "Schwer"-Stufe zusammengefasst.
    ============================================================ */
 
-const LEVELS = [
-  { id: 1, title: 'Notenwerte', topics: ['notevalues'] },
-  { id: 2, title: '+ Pausen', topics: ['notevalues', 'rests'] },
-  { id: 3, title: '+ Taktarten & Verhältnisse', topics: ['notevalues', 'rests', 'timesignatures', 'ratios'] },
-  { id: 4, title: '+ Notenaufbau', topics: ['notevalues', 'rests', 'structure'] },
+const DIFFICULTIES = [
+  { id: 'leicht', order: 1, title: '🟢 Leicht', topics: ['notevalues'] },
+  { id: 'mittel', order: 2, title: '🟡 Mittel', topics: ['notevalues', 'rests'] },
+  { id: 'schwer', order: 3, title: '🔴 Schwer', topics: ['notevalues', 'rests', 'timesignatures', 'ratios', 'structure'] },
 ];
 
-function levelHasTopic(level, topic) {
-  return level.topics.includes(topic);
+function difficultyHasTopic(difficulty, topic) {
+  return difficulty.topics.includes(topic);
 }
 
-// Notenwerte + (falls im Level freigeschaltet) Pausen - die inhaltliche
-// Grundmenge, aus der die meisten Formate ihre Karten/Fragen ziehen.
-function factsForLevel(level) {
+// Notenwerte + (falls in der Schwierigkeit freigeschaltet) Pausen - die
+// inhaltliche Grundmenge, aus der die meisten Formate ihre Karten/Fragen
+// ziehen.
+function factsForDifficulty(difficulty) {
   const facts = [...NOTE_FACTS];
-  if (levelHasTopic(level, 'rests')) facts.push(...REST_FACTS);
+  if (difficultyHasTopic(difficulty, 'rests')) facts.push(...REST_FACTS);
   return facts;
 }
 

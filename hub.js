@@ -1,11 +1,12 @@
 'use strict';
 
 /* ============================================================
-   App-Gerüst: Stationen-Hub (Level-Wahl + sechs Format-Kacheln), Punkte,
-   Speicherung, Einstellungen - siehe Konzeptnotiz Punkt 4/5/7.
-   Level und Format sind bewusst UNABHÄNGIG wählbar (Level bestimmt nur den
-   INHALT, nicht das Format) - deshalb zwei getrennte Auswahlreihen im Hub
-   statt einer verschachtelten Navigation.
+   App-Gerüst: Hub mit sechs Format-Kacheln, Punkte, Speicherung,
+   Einstellungen. Die Schwierigkeit wird NICHT mehr global im Hub gewählt
+   (das war für Kinder verwirrend - zwei getrennte Auswahlreihen, Level
+   oben/Format unten), sondern direkt VOR dem Start eines einzelnen
+   Formats: Format-Kachel antippen -> kurze Zwischenseite mit drei
+   Schwierigkeitsstufen -> Runde startet.
    ============================================================ */
 
 const STORAGE_KEY = 'notenRaetselFortschritt';
@@ -13,16 +14,16 @@ const STORAGE_KEY = 'notenRaetselFortschritt';
 function loadProgress() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { points: 0, completedCombos: [], levelId: 1, soundVolume: 0.6 };
+    if (!raw) return { points: 0, completedCombos: [], lastDifficultyByFormat: {}, soundVolume: 0.6 };
     const parsed = JSON.parse(raw);
     return {
       points: Math.max(0, Number(parsed.points) || 0),
       completedCombos: Array.isArray(parsed.completedCombos) ? parsed.completedCombos : [],
-      levelId: LEVELS.some((l) => l.id === parsed.levelId) ? parsed.levelId : 1,
+      lastDifficultyByFormat: typeof parsed.lastDifficultyByFormat === 'object' && parsed.lastDifficultyByFormat ? parsed.lastDifficultyByFormat : {},
       soundVolume: typeof parsed.soundVolume === 'number' ? parsed.soundVolume : 0.6,
     };
   } catch (err) {
-    return { points: 0, completedCombos: [], levelId: 1, soundVolume: 0.6 };
+    return { points: 0, completedCombos: [], lastDifficultyByFormat: {}, soundVolume: 0.6 };
   }
 }
 
@@ -31,7 +32,7 @@ function saveProgress() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       points: game.points,
       completedCombos: Array.from(game.completedCombos),
-      levelId: game.levelId,
+      lastDifficultyByFormat: game.lastDifficultyByFormat,
       soundVolume: game.soundVolume,
     }));
   } catch (err) {
@@ -40,16 +41,17 @@ function saveProgress() {
 }
 
 const game = {
-  screen: 'hub', // 'hub' | 'format'
-  levelId: 1,
+  screen: 'hub', // 'hub' | 'difficulty' | 'format'
   currentFormatId: null,
+  currentDifficultyId: null,
   points: 0,
-  completedCombos: new Set(), // "<levelId>-<formatId>", z.B. "2-memory"
+  completedCombos: new Set(), // "<formatId>-<difficultyId>", z.B. "memory-mittel"
+  lastDifficultyByFormat: {}, // merkt sich pro Format die zuletzt gewählte Stufe, nur als Vorauswahl-Hinweis
   soundVolume: 0.6,
 };
 
-function currentLevel() {
-  return LEVELS.find((l) => l.id === game.levelId);
+function currentDifficulty() {
+  return DIFFICULTIES.find((d) => d.id === game.currentDifficultyId);
 }
 
 // Jedes Format bekommt hier Titel/Hinweis-Text (zentral, damit sie
@@ -75,81 +77,100 @@ function formatById(id) {
    ============================================================ */
 
 const hubScreenEl = document.getElementById('hubScreen');
+const difficultyScreenEl = document.getElementById('difficultyScreen');
 const formatScreenEl = document.getElementById('formatScreen');
 const backToHubBtn = document.getElementById('backToHubBtn');
 const pointsLabel = document.getElementById('pointsLabel');
+const difficultyTitleEl = document.getElementById('difficultyTitle');
 const formatTitleEl = document.getElementById('formatTitle');
 const formatHintEl = document.getElementById('formatHint');
-const formatContainerEl = document.getElementById('formatContainer');
 const feedbackEl = document.getElementById('feedback');
 const actionBtn = document.getElementById('actionBtn');
 
 function renderApp() {
-  const inFormat = game.screen === 'format';
-  hubScreenEl.hidden = inFormat;
-  formatScreenEl.hidden = !inFormat;
-  backToHubBtn.hidden = !inFormat;
+  hubScreenEl.hidden = game.screen !== 'hub';
+  difficultyScreenEl.hidden = game.screen !== 'difficulty';
+  formatScreenEl.hidden = game.screen !== 'format';
+  backToHubBtn.hidden = game.screen === 'hub';
   pointsLabel.textContent = `⭐ ${game.points} Punkte`;
 
-  if (inFormat) {
+  if (game.screen === 'hub') {
+    actionBtn.hidden = true; // "✓ Prüfen" gehört nur zu Domino/Drag & Drop im Format-Bildschirm
+    renderHub();
+  } else if (game.screen === 'difficulty') {
+    actionBtn.hidden = true;
+    renderDifficultyScreen();
+  } else {
     const fmt = formatById(game.currentFormatId);
     formatTitleEl.textContent = `${fmt.icon} ${fmt.title}`;
     formatHintEl.textContent = fmt.hint;
     actionBtn.hidden = !fmt.actionBtn;
     feedbackEl.hidden = true;
-  } else {
-    // "✓ Prüfen" gehört nur zu Domino/Drag & Drop - ohne dieses Zurücksetzen
-    // bliebe er sichtbar, wenn man von dort zum Hub zurückkehrt.
-    actionBtn.hidden = true;
-    renderHub();
   }
 }
 
 function renderHub() {
-  const levelPillsEl = document.getElementById('levelPills');
-  levelPillsEl.innerHTML = '';
-  LEVELS.forEach((level) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = `level-pill${level.id === game.levelId ? ' is-selected' : ''}`;
-    btn.textContent = `Level ${level.id}: ${level.title}`;
-    btn.addEventListener('click', () => {
-      game.levelId = level.id;
-      saveProgress();
-      renderHub();
-    });
-    levelPillsEl.appendChild(btn);
-  });
-
   const formatGridEl = document.getElementById('formatGrid');
   formatGridEl.innerHTML = '';
   FORMATS.forEach((fmt, i) => {
-    const done = game.completedCombos.has(`${game.levelId}-${fmt.id}`);
+    const doneDiffs = DIFFICULTIES.filter((d) => game.completedCombos.has(`${fmt.id}-${d.id}`));
     const card = document.createElement('button');
     card.type = 'button';
-    card.className = `format-card${done ? ' is-done' : ''}`;
+    card.className = `format-card${doneDiffs.length === DIFFICULTIES.length ? ' is-done' : ''}`;
     card.style.setProperty('--card-index', i);
     card.innerHTML = `
       <span class="format-card-icon">${fmt.icon}</span>
       <span class="format-card-title">${fmt.title}</span>
-      ${done ? '<span class="format-card-check">✓</span>' : ''}
+      <span class="format-card-dots">
+        ${DIFFICULTIES.map((d) => `<span class="format-card-dot${game.completedCombos.has(`${fmt.id}-${d.id}`) ? ' is-done' : ''}"></span>`).join('')}
+      </span>
     `;
-    card.addEventListener('click', () => startFormat(fmt.id));
+    card.addEventListener('click', () => chooseFormat(fmt.id));
     formatGridEl.appendChild(card);
   });
 }
 
-function startFormat(formatId) {
+function renderDifficultyScreen() {
+  const fmt = formatById(game.currentFormatId);
+  difficultyTitleEl.textContent = `${fmt.icon} ${fmt.title} - Schwierigkeit wählen`;
+
+  const gridEl = document.getElementById('difficultyGrid');
+  gridEl.innerHTML = '';
+  DIFFICULTIES.forEach((diff) => {
+    const done = game.completedCombos.has(`${fmt.id}-${diff.id}`);
+    const suggested = game.lastDifficultyByFormat[fmt.id] === diff.id;
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = `difficulty-card${suggested ? ' is-suggested' : ''}`;
+    card.innerHTML = `
+      <span class="difficulty-card-title">${diff.title}</span>
+      ${done ? '<span class="difficulty-card-check">✓ geschafft</span>' : ''}
+    `;
+    card.addEventListener('click', () => chooseDifficulty(diff.id));
+    gridEl.appendChild(card);
+  });
+}
+
+function chooseFormat(formatId) {
   game.currentFormatId = formatId;
+  game.screen = 'difficulty';
+  renderApp();
+}
+
+function chooseDifficulty(difficultyId) {
+  game.currentDifficultyId = difficultyId;
+  game.lastDifficultyByFormat[game.currentFormatId] = difficultyId;
   game.screen = 'format';
+  saveProgress();
   renderApp();
   ensureAudioContext();
-  formatById(formatId).start();
+  formatById(game.currentFormatId).start();
 }
 
 function backToHub() {
   game.screen = 'hub';
   game.currentFormatId = null;
+  game.currentDifficultyId = null;
   renderApp();
 }
 
@@ -186,11 +207,12 @@ function awardPoints(points) {
 }
 
 // Wird von jedem Format am Ende einer erfolgreich abgeschlossenen Runde
-// aufgerufen - markiert die Level/Format-Kombination als erledigt (für das
-// Häkchen im Hub) und kehrt nach kurzer Anzeige automatisch zurück, damit
-// niemand manuell navigieren muss.
+// aufgerufen - markiert die Format/Schwierigkeit-Kombination als erledigt
+// (für die Punkte im Hub bzw. den Haken in der Schwierigkeitsauswahl) und
+// kehrt nach kurzer Anzeige automatisch zurück, damit niemand manuell
+// navigieren muss.
 function finishFormatRound(bonusPoints) {
-  game.completedCombos.add(`${game.levelId}-${game.currentFormatId}`);
+  game.completedCombos.add(`${game.currentFormatId}-${game.currentDifficultyId}`);
   saveProgress();
   playRoundCompleteSound();
   if (bonusPoints > 0) awardPoints(bonusPoints);
@@ -235,6 +257,7 @@ soundVolumeSlider.addEventListener('input', () => {
 resetProgressBtn.addEventListener('click', () => {
   game.points = 0;
   game.completedCombos = new Set();
+  game.lastDifficultyByFormat = {};
   saveProgress();
   settingsPanel.hidden = true;
   settingsToggle.setAttribute('aria-expanded', 'false');
@@ -248,7 +271,7 @@ resetProgressBtn.addEventListener('click', () => {
 const restored = loadProgress();
 game.points = restored.points;
 game.completedCombos = new Set(restored.completedCombos);
-game.levelId = restored.levelId;
+game.lastDifficultyByFormat = restored.lastDifficultyByFormat;
 game.soundVolume = restored.soundVolume;
 soundVolumeSlider.value = String(Math.round(game.soundVolume * 100));
 soundVolumeValue.textContent = soundVolumeSlider.value;

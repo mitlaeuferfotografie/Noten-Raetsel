@@ -13,8 +13,8 @@ const DRAGDROP_TASK_COUNT = 5;
 const DRAGDROP_POINTS_PER_ELEMENT = 10;
 const DRAGDROP_COMPLETE_BONUS = 15;
 
-function buildSortTask(level) {
-  const facts = factsForLevel(level);
+function buildSortTask(difficulty) {
+  const facts = factsForDifficulty(difficulty);
   const byUnits = new Map();
   facts.forEach((f) => {
     if (!byUnits.has(f.units)) byUnits.set(f.units, []);
@@ -53,11 +53,11 @@ let dragdropState = null;
 let ddDrag = null;
 
 function startDragDrop() {
-  const level = currentLevel();
-  const canBuild = levelHasTopic(level, 'structure');
+  const difficulty = currentDifficulty();
+  const canBuild = difficultyHasTopic(difficulty, 'structure');
   const tasks = [];
   for (let i = 0; i < DRAGDROP_TASK_COUNT; i++) {
-    tasks.push(canBuild && Math.random() < 0.5 ? buildBuildTask() : buildSortTask(level));
+    tasks.push(canBuild && Math.random() < 0.5 ? buildBuildTask() : buildSortTask(difficulty));
   }
   dragdropState = { tasks, index: 0 };
   document.getElementById('actionBtn').onclick = checkDragDropTask;
