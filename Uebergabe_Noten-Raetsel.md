@@ -16,13 +16,13 @@ breites Wissensquiz zu Notenwerten in sechs unterschiedlichen Spielformaten.
 Ursprüngliche Konzeptnotiz lag in
 `C:\Users\BrandschP\Documents\ClaudeArbeitsordner\Musikunterricht\Konzeptnotiz_Noten-Raetsel_fuer_Code.md`.
 
-## Stand: 2026-09-23
+## Stand: 2026-09-24
 
-- Erste Version vollständig funktionsfähig, alle sechs Formate lokal
-  durchgetestet (inkl. echtem Noten-Werkstatt, Punktevergabe,
-  Schwierigkeits-Filterung, Randomisierung, Rundenabschluss). Noch NICHT
-  auf GitHub Pages veröffentlicht (folgt im Anschluss an diese erste
-  Version).
+- Vollständig funktionsfähig, alle sechs Formate lokal durchgetestet (inkl.
+  echtem Noten-Werkstatt, Punktevergabe, Schwierigkeits-Filterung,
+  Randomisierung, Rundenabschluss) UND live auf GitHub Pages veröffentlicht
+  (siehe Repository/Deployment unten - der Stand "noch nicht veröffentlicht"
+  ist überholt).
 - Hub-Redesign (noch am selben Tag, direkt nach erster Rückmeldung):
   Nutzer-Feedback war, dass eine globale Level-Auswahl oben + Format-Wahl
   unten für Kinder verwirrend ist ("das wird kein kind verstehen"). Umbau
@@ -33,9 +33,20 @@ Ursprüngliche Konzeptnotiz lag in
   umbenannt zu `DIFFICULTIES`/`difficultyHasTopic`/`factsForDifficulty`.
   Fortschrittsanzeige jetzt als 3 kleine Punkte pro Format-Kachel statt
   einem einzigen Haken.
-- Style-Test (Branch `style-test-tailwind`, noch nicht gepusht): heller
-  Slate/Amber-Look mit dunkelblauer (Navy) Toolbar/Buttons statt
-  Schwarz - siehe eigener Screenshot im Projektordner.
+- **Redesign live auf `main`** (der frühere Style-Test-Branch
+  `style-test-tailwind` ist längst gemerged, nicht mehr relevant): heller
+  Slate/Amber-Look mit royalblauer Toolbar - identisch zu Rhythmus-Generator,
+  Rhythmus-Trainer und der Musik-Apps-Übersicht (gemeinsame `:root`-
+  Variablen in style.css, kein "Baloo 2" mehr).
+- Oben rechts in der Toolbar ein Zurück-Link zur Musik-Apps-Übersicht
+  (`.toolbar-home-link`, `margin-left: auto`) - bewusst RECHTS, da links
+  bereits der In-App-"Zurück"-Button (Hub/Format) sitzt. "Impressum" als
+  eigener Menüpunkt am Ende des Einstellungen-Flyouts
+  (`.settings-legal-link`, verlinkt auf die zentrale Seite im
+  Musik-Apps-Repo).
+- Header-Icon vor dem Titel am 2026-09-24 von 🎼 auf ❓ geändert - Teil einer
+  app-übergreifenden Konvention, siehe
+  [Musik-Apps/README.md](../Musik-Apps/README.md).
 - Feedback-Runde nach dem Style-Test (Bugfixes + Inhalt, vor dem Push):
   - **Verbinden-Bug behoben**: Die rechte Spalte zeigt nur die Dauer (z.B.
     "1 Schlag") - eine Note und ihre gleich lange Pause sahen dort
@@ -65,8 +76,12 @@ Ursprüngliche Konzeptnotiz lag in
 
 ## Repository / Deployment
 
+- GitHub: `https://github.com/mitlaeuferfotografie/Noten-Raetsel`
+  (Branch `main`, GitHub Pages "Deploy from a branch", Ordner `/ (root)`).
+- Live-URL: `https://mitlaeuferfotografie.github.io/Noten-Raetsel/`
 - Lokal: `node serve.js`, dann `http://localhost:5181`.
-- GitHub/Live-URL: siehe README.md, sobald veröffentlicht.
+- Auf der [Musik-Apps-Übersicht](https://mitlaeuferfotografie.github.io/Musik-Apps/)
+  verlinkt (dritte Karte).
 
 ## Technik / Architektur
 
@@ -129,8 +144,8 @@ Ursprüngliche Konzeptnotiz lag in
 
 ## Offene / mögliche nächste Schritte (nicht beauftragt, nur vorgemerkt)
 
-- Veröffentlichung auf GitHub Pages + Kurzlink + QR-Code (analog zu den
-  beiden anderen Apps) steht noch aus.
+- Kurzlink + QR-Code in den Einstellungen (analog zum Rhythmus-Generator)
+  stehen noch aus - Veröffentlichung selbst ist seit 2026-09-23 erledigt.
 - Domino-Kettenlänge/Aufgabenanzahl pro Format sind Startwerte
   (`DOMINO_CHAIN_LENGTH`, `QUIZ_ROUND_SIZE` usw. in den jeweiligen
   `game-*.js`) - bei Bedarf leicht anpassbar.

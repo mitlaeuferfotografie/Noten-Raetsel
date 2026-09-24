@@ -116,9 +116,16 @@ textbasierte Formate das breiteste Themenspektrum aus.
   Schwierigkeit/Format-Kombination als "geschafft" (Punkt auf der
   Format-Kachel) - anders als der Rhythmus-Trainer, der wegen kurzer
   Einzelrunden 10 Wiederholungen braucht, um Übung zu erzwingen.
-- **Optik:** wie in der Notiz gewünscht am verspielten Rhythmus-Trainer
-  orientiert (gleiche Farbpalette, Schriftart "Baloo 2", Punkte-Overlay,
-  runde Formen) statt am schlichten Rhythmus-Generator.
+- **Optik:** seit dem Redesign vom 2026-09-24 dieselbe helle Slate-/Amber-
+  Palette mit royalblauer Toolbar wie Rhythmus-Generator, Rhythmus-Trainer
+  und die Musik-Apps-Übersicht (identische `:root`-Variablen, Systemschrift
+  statt der ursprünglich geplanten "Baloo 2") - bewusst NICHT mehr eigenständig
+  gestaltet, damit der Übergang zwischen den Apps nahtlos wirkt.
+- **Header-Icon:** ❓ vor dem Titel, oben rechts ein Zurück-Link zur
+  Musik-Apps-Übersicht (`.toolbar-home-link`), Impressum als Menüpunkt in
+  den Einstellungen (`.settings-legal-link`) - siehe
+  [Musik-Apps/README.md](../Musik-Apps/README.md) für die verbindlichen
+  Konventionen.
 - **Name:** Ordner/Titel "Noten-Rätsel" wie vorgegeben; Arbeitstitel aus
   der Notiz übernommen.
 
