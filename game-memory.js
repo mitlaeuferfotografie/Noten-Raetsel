@@ -35,6 +35,10 @@ function renderMemory() {
   const container = document.getElementById('formatContainer');
   const grid = document.createElement('div');
   grid.className = 'memory-grid';
+  // Feste Spaltenzahl statt auto-fit (Anzahl Karten ist bekannt) - so
+  // bilden die Karten immer ein möglichst quadratisches Raster statt auf
+  // breiten Bildschirmen in eine einzige lange Reihe zu laufen.
+  grid.style.setProperty('--memory-cols', Math.ceil(Math.sqrt(memoryState.cards.length)));
 
   memoryState.cards.forEach((card) => {
     const fact = factById(card.factId);

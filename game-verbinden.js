@@ -21,7 +21,8 @@ function startVerbinden() {
   verbindenState = {
     left: shuffle(chosen.map((f) => ({ id: uid('l'), factId: f.id }))),
     right: shuffle(chosen.map((f) => ({ id: uid('r'), factId: f.id }))),
-    matchedFactIds: new Set(),
+    matchedLeftIds: new Set(),
+    matchedRightIds: new Set(),
     selectedLeft: null,
     selectedRight: null,
     maxUnits,
@@ -38,7 +39,7 @@ function renderVerbinden() {
   leftCol.className = 'verbinden-col';
   verbindenState.left.forEach((item) => {
     const fact = factById(item.factId);
-    const matched = verbindenState.matchedFactIds.has(item.factId);
+    const matched = verbindenState.matchedLeftIds.has(item.id);
     const el = document.createElement('button');
     el.type = 'button';
     el.className = `verbinden-card${matched ? ' is-matched' : ''}${verbindenState.selectedLeft === item.id ? ' is-selected' : ''}`;
@@ -52,7 +53,7 @@ function renderVerbinden() {
   rightCol.className = 'verbinden-col';
   verbindenState.right.forEach((item) => {
     const fact = factById(item.factId);
-    const matched = verbindenState.matchedFactIds.has(item.factId);
+    const matched = verbindenState.matchedRightIds.has(item.id);
     const pct = Math.max(12, (fact.units / verbindenState.maxUnits) * 100);
     const el = document.createElement('button');
     el.type = 'button';
@@ -73,7 +74,10 @@ function renderVerbinden() {
 }
 
 function onVerbindenPick(side, item) {
-  if (verbindenState.matchedFactIds.has(item.factId)) return;
+  const alreadyMatched = side === 'left'
+    ? verbindenState.matchedLeftIds.has(item.id)
+    : verbindenState.matchedRightIds.has(item.id);
+  if (alreadyMatched) return;
   playTapSound();
 
   if (side === 'left') {
@@ -88,13 +92,19 @@ function onVerbindenPick(side, item) {
   const leftItem = verbindenState.left.find((l) => l.id === verbindenState.selectedLeft);
   const rightItem = verbindenState.right.find((r) => r.id === verbindenState.selectedRight);
 
-  if (leftItem.factId === rightItem.factId) {
-    verbindenState.matchedFactIds.add(leftItem.factId);
+  // Die rechte Seite zeigt nur die Dauer (z.B. "1 Schlag") - eine Note und
+  // ihre gleich lange Pause sehen dort identisch aus. Deshalb nach der
+  // DAUER (units) matchen statt nach der exakten factId, sonst würde bei
+  // zwei gleich langen Karten rechts nur eine ganz bestimmte akzeptiert,
+  // obwohl beide fürs Kind ununterscheidbar aussehen.
+  if (factById(leftItem.factId).units === factById(rightItem.factId).units) {
+    verbindenState.matchedLeftIds.add(leftItem.id);
+    verbindenState.matchedRightIds.add(rightItem.id);
     verbindenState.selectedLeft = null;
     verbindenState.selectedRight = null;
     awardPoints(VERBINDEN_POINTS_PER_PAIR);
     renderVerbinden();
-    if (verbindenState.matchedFactIds.size === verbindenState.left.length) {
+    if (verbindenState.matchedLeftIds.size === verbindenState.left.length) {
       finishFormatRound(VERBINDEN_COMPLETE_BONUS);
     }
   } else {

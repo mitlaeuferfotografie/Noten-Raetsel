@@ -1,12 +1,13 @@
 'use strict';
 
 /* ============================================================
-   Format 4: Domino - Steine per Antippen in eine Kette legen, bei der
+   Format 4: Domino - Steine per echtem Ziehen (Pointer Events, wie die
+   Noten-Werkstatt) aus dem Vorrat in eine Kette legen, bei der
    berührende Hälften gleich lange Notenwerte zeigen (z.B. "1 Halbe Note"
-   passt an "2 Viertelnoten"). Bedienung per Antippen (Stein antippen,
-   dann leeren Kettenplatz antippen) statt Drag & Drop - laut Konzeptnotiz
-   Punkt 6 ist "Antippen ODER Ziehen" für Verbinden/Zuordnen-artige Formate
-   ausdrücklich gleichwertig, und auf kleinen Touch-Zielen robuster.
+   passt an "2 Viertelnoten"). Ursprünglich Antippen-basiert (Stein
+   antippen, dann Kettenplatz antippen) - auf Nutzerfeedback umgestellt,
+   weil sich das zweistufige Antippen zu abstrakt/mechanisch statt greifbar
+   anfühlte. Belegten Platz antippen entfernt den Stein weiterhin per Klick.
    ============================================================ */
 
 const DOMINO_CHAIN_LENGTH = 6;
@@ -48,13 +49,14 @@ function dominoHalfHtml(half) {
   return `<span class="domino-tile-icon" title="${half.label}">${fact.icon}</span>${countBadge}`;
 }
 
+let dominoDrag = null;
+
 function startDomino() {
   const tiles = buildDominoChain(currentDifficulty());
   dominoState = {
     pool: shuffle(tiles.map((t) => t.id)), // Präsentationsreihenfolge jede Runde neu ausgewürfelt
     slots: new Array(tiles.length).fill(null), // Kette: null oder Stein-ID
     tilesById: new Map(tiles.map((t) => [t.id, t])),
-    selectedTileId: null,
     wrongLinkIndexes: new Set(),
   };
   document.getElementById('actionBtn').onclick = checkDomino;
@@ -69,20 +71,23 @@ function renderDomino() {
   const chainEl = document.createElement('div');
   chainEl.className = 'domino-chain';
   dominoState.slots.forEach((tileId, i) => {
-    const slot = document.createElement('button');
-    slot.type = 'button';
+    const slot = document.createElement('div');
     slot.className = 'domino-slot';
+    slot.dataset.slotIndex = String(i);
     if (tileId) {
       const tile = dominoState.tilesById.get(tileId);
       slot.classList.add('is-filled');
       if (dominoState.wrongLinkIndexes.has(i - 1) || dominoState.wrongLinkIndexes.has(i)) {
         slot.classList.add('is-wrong');
       }
-      slot.innerHTML = `${dominoHalfHtml(tile.left)}<span class="domino-divider"></span>${dominoHalfHtml(tile.right)}`;
-      slot.addEventListener('click', () => onDominoSlotClick(i));
+      const tileBtn = document.createElement('button');
+      tileBtn.type = 'button';
+      tileBtn.className = 'domino-tile is-placed';
+      tileBtn.innerHTML = `${dominoHalfHtml(tile.left)}<span class="domino-divider"></span>${dominoHalfHtml(tile.right)}`;
+      tileBtn.addEventListener('click', () => onDominoSlotRemove(i));
+      slot.appendChild(tileBtn);
     } else {
       slot.textContent = '+';
-      slot.addEventListener('click', () => onDominoSlotClick(i));
     }
     chainEl.appendChild(slot);
   });
@@ -93,9 +98,9 @@ function renderDomino() {
     const tile = dominoState.tilesById.get(tileId);
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = `domino-tile${dominoState.selectedTileId === tileId ? ' is-selected' : ''}`;
+    btn.className = 'domino-tile';
     btn.innerHTML = `${dominoHalfHtml(tile.left)}<span class="domino-divider"></span>${dominoHalfHtml(tile.right)}`;
-    btn.addEventListener('click', () => onDominoTilePick(tileId));
+    btn.addEventListener('pointerdown', (e) => startDominoDrag(e, tileId));
     poolEl.appendChild(btn);
   });
 
@@ -108,30 +113,58 @@ function renderDomino() {
   container.appendChild(wrap);
 }
 
-function onDominoTilePick(tileId) {
-  playTapSound();
-  dominoState.selectedTileId = dominoState.selectedTileId === tileId ? null : tileId;
-  renderDomino();
-}
-
-function onDominoSlotClick(index) {
-  const existing = dominoState.slots[index];
-  if (existing) {
-    // Belegten Platz antippen: Stein zurück in den Vorrat legen.
-    dominoState.pool.push(existing);
-    dominoState.slots[index] = null;
-    dominoState.wrongLinkIndexes.clear();
-    playTapSound();
-    renderDomino();
-    return;
-  }
-  if (!dominoState.selectedTileId) return;
-  dominoState.slots[index] = dominoState.selectedTileId;
-  dominoState.pool = dominoState.pool.filter((id) => id !== dominoState.selectedTileId);
-  dominoState.selectedTileId = null;
+function onDominoSlotRemove(index) {
+  // Belegten Platz antippen: Stein zurück in den Vorrat legen.
+  const tileId = dominoState.slots[index];
+  if (!tileId) return;
+  dominoState.pool.push(tileId);
+  dominoState.slots[index] = null;
   dominoState.wrongLinkIndexes.clear();
   playTapSound();
   renderDomino();
+}
+
+/* ---------- Ziehen (Pointer Events) ---------- */
+
+function startDominoDrag(e, tileId) {
+  e.preventDefault();
+  const tile = dominoState.tilesById.get(tileId);
+  dominoDrag = { tileId };
+  const ghost = document.getElementById('dragGhost');
+  ghost.innerHTML = `<div class="domino-tile domino-tile-ghost">${dominoHalfHtml(tile.left)}<span class="domino-divider"></span>${dominoHalfHtml(tile.right)}</div>`;
+  ghost.style.left = `${e.clientX}px`;
+  ghost.style.top = `${e.clientY}px`;
+  ghost.hidden = false;
+  document.addEventListener('pointermove', onDominoDragMove);
+  document.addEventListener('pointerup', onDominoDragEnd);
+}
+
+function onDominoDragMove(e) {
+  const ghost = document.getElementById('dragGhost');
+  ghost.style.left = `${e.clientX}px`;
+  ghost.style.top = `${e.clientY}px`;
+  document.querySelectorAll('.domino-slot.drag-over').forEach((s) => s.classList.remove('drag-over'));
+  const slotEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('.domino-slot');
+  if (slotEl && !slotEl.classList.contains('is-filled')) slotEl.classList.add('drag-over');
+}
+
+function onDominoDragEnd(e) {
+  document.removeEventListener('pointermove', onDominoDragMove);
+  document.removeEventListener('pointerup', onDominoDragEnd);
+  document.getElementById('dragGhost').hidden = true;
+  if (!dominoDrag) return;
+
+  const slotEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('.domino-slot');
+  if (slotEl && !slotEl.classList.contains('is-filled')) {
+    const index = Number(slotEl.dataset.slotIndex);
+    const { tileId } = dominoDrag;
+    dominoState.slots[index] = tileId;
+    dominoState.pool = dominoState.pool.filter((id) => id !== tileId);
+    dominoState.wrongLinkIndexes.clear();
+    playTapSound();
+    renderDomino();
+  }
+  dominoDrag = null;
 }
 
 // Wird vom gemeinsamen "✓ Prüfen"-Knopf (siehe hub.js) aufgerufen.
