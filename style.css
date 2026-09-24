@@ -90,6 +90,7 @@ h1, h2, .btn, .action-btn, .format-card-title,
   padding: 4px 10px;
   border-radius: 10px;
   flex: none;
+  margin-left: auto;
 }
 .toolbar-home-link:hover { background: rgba(255, 255, 255, 0.1); }
 .toolbar-home-arrow { font-size: 1.3rem; }
