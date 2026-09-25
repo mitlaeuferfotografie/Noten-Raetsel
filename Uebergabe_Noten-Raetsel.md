@@ -142,6 +142,32 @@ Ursprüngliche Konzeptnotiz lag in
 - Neue Frage-/Aufgaben-Vorlagen als generierende Funktion in die jeweilige
   `game-*.js` einfügen, nicht als hartcodierte Einzelfrage.
 
+## Bugfixes 2026-09-25 (aus dem echten Unterricht gemeldet)
+
+- **Domino - fester Anfangsstein:** Ohne Startpunkt mussten Kinder die
+  Kette komplett blind zusammensetzen; zwei Steine konnten lokal
+  zueinander passen (rechter Wert von A = linker Wert von B), aber an der
+  falschen STELLE der Gesamtkette liegen und wurden beim Prüfen trotzdem
+  als falsch markiert - für Kinder wirkte das wie "war doch richtig!".
+  Fix in `game-domino.js`/`startDomino()`: der erste Stein der generierten
+  Kette (`tiles[0]`) steht von Anfang an fest in Feld 1
+  (`dominoState.startTileId`, "Start"-Badge, `onDominoSlotRemove` lässt
+  ihn nicht entfernen) - Kinder bauen gezielt von dort nach rechts weiter.
+- **Noten-Werkstatt "Leicht" - immer dieselbe Aufgabe:** `buildSortTask()`
+  wählte bisher IMMER alle 4 verfügbaren Notenwerte (bei "Leicht" gibt es
+  nur diese 4 Fakten insgesamt, je einen pro Dauer - keine Auswahl
+  möglich), in der einzig gültigen Zielreihenfolge - dadurch war die
+  Aufgabe in allen 5 Runden identisch. Fix: zufällige Teilmengengröße
+  (3 oder 4 von 4 Dauern) statt fest 4, dadurch mehrere unterschiedliche
+  Aufgaben-Varianten pro Level.
+- **Memory - vereinzelt gemeldete "falsche Paare übrig" (NICHT
+  reproduziert):** Code-Durchsicht von `game-memory.js` (Pairing über
+  `factId` + unterschiedliches `kind`, Karten werden über `sample()` aus
+  eindeutigen Fakten gezogen) ergab keine Fehlerquelle - `sample()`
+  garantiert eindeutige Fakten, Duplikate sind nicht möglich. Falls es
+  erneut auftritt: Level/Schwierigkeit und möglichst einen Screenshot
+  festhalten, bevor an dieser Logik etwas geändert wird.
+
 ## Offene / mögliche nächste Schritte (nicht beauftragt, nur vorgemerkt)
 
 - Kurzlink + QR-Code in den Einstellungen (analog zum Rhythmus-Generator)
