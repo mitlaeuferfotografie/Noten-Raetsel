@@ -401,6 +401,20 @@ main {
 .domino-slot.drag-over { border-color: var(--accent); background: rgba(245, 158, 11, 0.14); }
 .domino-slot.is-filled { border-style: solid; border-color: var(--border-strong); padding: 0; }
 .domino-slot.is-wrong { border-color: var(--warn); background: var(--warn-bg); }
+.domino-hint { display: block; color: var(--ink-soft); font-weight: 400; font-size: 0.85rem; margin-top: 2px; }
+.domino-tile.is-start-tile { position: relative; cursor: default; border-color: var(--accent); }
+.domino-start-badge {
+  position: absolute;
+  top: -10px;
+  left: 6px;
+  background: var(--accent);
+  color: var(--ink-on-dark, #fff);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+}
 
 /* ---------- Quiz ---------- */
 

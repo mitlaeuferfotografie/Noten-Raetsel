@@ -20,9 +20,18 @@ function buildSortTask(difficulty) {
     if (!byUnits.has(f.units)) byUnits.set(f.units, []);
     byUnits.get(f.units).push(f);
   });
+  // Zufällige ANZAHL der Dauern (mind. 3, höchstens alle verfügbaren) statt
+  // immer exakt aller vorhandenen Dauern: bei "Leicht" gibt es nur die 4
+  // Notenwerte (je genau ein Fakt pro Dauer, kein zweiter zur Auswahl) -
+  // mit fester Anzahl 4 war die Aufgabe dort deshalb JEDE Runde exakt
+  // dieselben 4 Karten in derselben Zielreihenfolge (gemeldet 2026-09-25:
+  // "5 mal die gleiche Aufgabe"). Mit variabler Teilmengengröße entstehen
+  // auch bei nur 4 möglichen Dauern mehrere unterschiedliche Aufgaben.
+  const minCount = Math.min(3, byUnits.size);
+  const count = minCount + Math.floor(Math.random() * (byUnits.size - minCount + 1));
   // Ein Fakt pro Dauer auswählen (nie zwei mit gleicher Dauer zusammen) -
   // sonst wäre die Sortierreihenfolge an dieser Stelle nicht eindeutig.
-  const chosenUnits = sample([...byUnits.keys()], Math.min(4, byUnits.size));
+  const chosenUnits = sample([...byUnits.keys()], count);
   const chosenFacts = chosenUnits.map((u) => pickOne(byUnits.get(u)));
   return {
     kind: 'sort',

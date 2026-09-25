@@ -51,14 +51,26 @@ function dominoHalfHtml(half) {
 
 let dominoDrag = null;
 
+// Anfangsstein (2026-09-25, aus dem Unterricht gemeldet): ohne festen
+// Startpunkt mussten Kinder die Kette komplett blind durch Ausprobieren
+// zusammensetzen - zwei Steine konnten dabei lokal zueinander passen
+// (rechter Wert von A = linker Wert von B), aber trotzdem an der falschen
+// STELLE in der Gesamtkette liegen, was beim Prüfen dann doch als falsch
+// markiert wurde. Jetzt steht der erste Stein der generierten Kette von
+// Anfang an fest in Feld 1 (nicht entfernbar) - die Kinder bauen von dort
+// aus gezielt nach rechts weiter, statt raten zu müssen, wo die Kette
+// überhaupt anfängt.
 function startDomino() {
   const tiles = buildDominoChain(currentDifficulty());
+  const startTileId = tiles[0].id;
   dominoState = {
-    pool: shuffle(tiles.map((t) => t.id)), // Präsentationsreihenfolge jede Runde neu ausgewürfelt
+    pool: shuffle(tiles.slice(1).map((t) => t.id)), // Präsentationsreihenfolge jede Runde neu ausgewürfelt
     slots: new Array(tiles.length).fill(null), // Kette: null oder Stein-ID
     tilesById: new Map(tiles.map((t) => [t.id, t])),
     wrongLinkIndexes: new Set(),
+    startTileId,
   };
+  dominoState.slots[0] = startTileId;
   document.getElementById('actionBtn').onclick = checkDomino;
   renderDomino();
 }
@@ -74,6 +86,8 @@ function renderDomino() {
     const slot = document.createElement('div');
     slot.className = 'domino-slot';
     slot.dataset.slotIndex = String(i);
+    const isStart = tileId === dominoState.startTileId;
+    if (isStart) slot.classList.add('is-start');
     if (tileId) {
       const tile = dominoState.tilesById.get(tileId);
       slot.classList.add('is-filled');
@@ -82,9 +96,10 @@ function renderDomino() {
       }
       const tileBtn = document.createElement('button');
       tileBtn.type = 'button';
-      tileBtn.className = 'domino-tile is-placed';
-      tileBtn.innerHTML = `${dominoHalfHtml(tile.left)}<span class="domino-divider"></span>${dominoHalfHtml(tile.right)}`;
-      tileBtn.addEventListener('click', () => onDominoSlotRemove(i));
+      tileBtn.className = `domino-tile is-placed${isStart ? ' is-start-tile' : ''}`;
+      tileBtn.innerHTML = `${isStart ? '<span class="domino-start-badge">Start</span>' : ''}${dominoHalfHtml(tile.left)}<span class="domino-divider"></span>${dominoHalfHtml(tile.right)}`;
+      // Der Anfangsstein ist bewusst nicht entfernbar (siehe Kommentar bei startDomino).
+      if (!isStart) tileBtn.addEventListener('click', () => onDominoSlotRemove(i));
       slot.appendChild(tileBtn);
     } else {
       slot.textContent = '+';
@@ -106,7 +121,7 @@ function renderDomino() {
 
   wrap.innerHTML = '<p class="domino-label">Steine:</p>';
   wrap.appendChild(poolEl);
-  wrap.insertAdjacentHTML('beforeend', '<p class="domino-label">Kette:</p>');
+  wrap.insertAdjacentHTML('beforeend', '<p class="domino-label">Kette: <span class="domino-hint">Der erste Stein steht schon fest - von dort aus nach rechts weiterbauen.</span></p>');
   wrap.appendChild(chainEl);
 
   container.innerHTML = '';
@@ -114,9 +129,10 @@ function renderDomino() {
 }
 
 function onDominoSlotRemove(index) {
-  // Belegten Platz antippen: Stein zurück in den Vorrat legen.
+  // Belegten Platz antippen: Stein zurück in den Vorrat legen. Der
+  // Anfangsstein (Feld 1) ist davon ausgenommen - siehe startDomino().
   const tileId = dominoState.slots[index];
-  if (!tileId) return;
+  if (!tileId || tileId === dominoState.startTileId) return;
   dominoState.pool.push(tileId);
   dominoState.slots[index] = null;
   dominoState.wrongLinkIndexes.clear();
